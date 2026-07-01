@@ -10,4 +10,4 @@ resources:
 
 images:
   - name: ghcr.io/aungyephyo2215/guestbook
-    newTag: v1.0.0
+    newTag: latest
