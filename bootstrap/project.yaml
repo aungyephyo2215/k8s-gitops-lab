@@ -19,10 +19,13 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: monitoring
 
-  # Allow Applications to be managed by this project
-  namespaceResourceWhitelist:
+  # Allow cluster-scoped resources (Namespace is cluster-scoped)
+  clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+
+  # Allow namespace-scoped resources
+  namespaceResourceWhitelist:
     - group: apps
       kind: Deployment
     - group: apps
