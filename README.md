@@ -31,8 +31,7 @@ A production-style Kubernetes GitOps laboratory built for learning modern DevOps
 ├── bootstrap/              # One-time manual apply to start GitOps loop
 │   ├── project.yaml        # ArgoCD AppProject (RBAC boundaries)
 │   ├── app-of-apps.yaml    # Root Application that manages applications/
-│   ├── cluster-issuer.yaml # Let's Encrypt ClusterIssuers (staging + production)
-│   └── argocd-ingress.yaml # ArgoCD UI ingress (optional)
+│   └── cluster-issuer.yaml # Let's Encrypt ClusterIssuers (staging + production)
 └── README.md
 ```
 

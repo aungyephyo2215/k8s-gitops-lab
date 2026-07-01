@@ -74,8 +74,7 @@ k8s-gitops-lab/
 ├── bootstrap/
 │   ├── project.yaml            # ArgoCD AppProject
 │   ├── app-of-apps.yaml        # Root Application
-│   ├── cluster-issuer.yaml     # Let's Encrypt
-│   └── argocd-ingress.yaml     # ArgoCD UI
+│   └── cluster-issuer.yaml     # Let's Encrypt
 └── README.md
 ```
 
