@@ -6,7 +6,7 @@ metadata:
 spec:
   # Global settings
   commonUpdateSettings:
-    updateStrategy: latest
+    updateStrategy: newest-build
 
   # Write back to Git
   writeBackConfig:
