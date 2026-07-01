@@ -17,23 +17,35 @@ A production-style Kubernetes GitOps laboratory built for learning modern DevOps
 
 ```
 .
-├── applications/
-├── apps/
+├── .github/workflows/
+│   └── build.yaml          # CI: builds and pushes Docker image to GHCR
+├── applications/           # ArgoCD Application CRDs (managed by app-of-apps)
+│   └── guestbook.yaml      # ArgoCD app + Image Updater annotations
+├── apps/                   # Application manifests (Kustomize)
 │   └── guestbook/
-├── bootstrap/
+│       ├── kustomization.yaml  # Image tag managed by Image Updater
+│       ├── deployment.yaml
+│       ├── service.yaml
+│       └── ingress.yaml
+├── bootstrap/              # One-time manual apply to start GitOps loop
+│   ├── project.yaml        # ArgoCD AppProject (RBAC boundaries)
+│   ├── app-of-apps.yaml    # Root Application that manages applications/
+│   ├── cluster-issuer.yaml # Let's Encrypt ClusterIssuers (staging + production)
+│   └── argocd-ingress.yaml # ArgoCD UI ingress (optional)
 └── README.md
 ```
 
 ## 📌 Project Roadmap
 
 - [x] Repository structure
-- [ ] Custom Docker image
-- [ ] GitHub Container Registry
-- [ ] GitHub Actions CI
-- [ ] Argo CD GitOps
-- [ ] HTTPS with cert-manager
+- [x] Custom Docker image
+- [x] GitHub Container Registry (GHCR)
+- [x] GitHub Actions CI
+- [x] Argo CD Application manifest
+- [x] Argo CD Bootstrap (App of Apps)
+- [x] Argo CD Image Updater
+- [x] HTTPS with cert-manager
 - [ ] Monitoring
-- [ ] Argo CD Image Updater
 - [ ] Multi-application deployment
 
 ## 🎯 Goal

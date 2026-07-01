@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: guestbook
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: gitops-lab
+  annotations:
+    # Watch GHCR for new image tags
+    argocd-image-updater.argoproj.io/image-list: guestbook=ghcr.io/aungyephyo2215/guestbook
+    # Always use the latest tag pushed by CI
+    argocd-image-updater.argoproj.io/guestbook.update-strategy: latest
+    # Write the updated tag back to Git (true GitOps)
+    argocd-image-updater.argoproj.io/guestbook.write-back-method: git
+spec:
+  project: gitops-lab
+
+  source:
+    repoURL: https://github.com/aungyephyo2215/k8s-gitops-lab.git
+    targetRevision: main
+    path: apps/guestbook
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: app-01
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

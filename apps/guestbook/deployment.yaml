@@ -14,8 +14,51 @@ spec:
       labels:
         app: guestbook-ui
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101    # nginx user in nginx:alpine
+        fsGroup: 101
       containers:
       - name: guestbook-ui
-        image: ghcr.io/YOUR_GITHUB_USERNAME/guestbook-ui:v1
+        image: ghcr.io/aungyephyo2215/guestbook  # tag managed by Kustomize
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 2
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-run
+          mountPath: /var/run
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}

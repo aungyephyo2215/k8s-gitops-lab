@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: gitops-lab
+  namespace: argocd
+spec:
+  description: GitOps Lab project for all applications
+
+  # Where ArgoCD can pull manifests from
+  sourceRepos:
+    - https://github.com/aungyephyo2215/k8s-gitops-lab.git
+
+  # Where ArgoCD can deploy to
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: app-*
+
+  # Allow Applications to be managed by this project
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: argoproj.io
+      kind: Application
