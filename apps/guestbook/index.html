@@ -425,6 +425,7 @@
         <a href="#architecture" class="nav-link">Architecture</a>
         <a href="#pipeline" class="nav-link">Pipeline</a>
         <a href="#features" class="nav-link">Features</a>
+        <a href="#workflow" class="nav-link">Workflow</a>
         <a href="https://github.com/aungyephyo2215/k8s-gitops-lab" target="_blank" class="github-btn">
           <i class="bi bi-github me-1"></i> Source
         </a>
@@ -703,6 +704,314 @@
             <div class="feature-icon" style="color: #38bdf8;"><i class="bi bi-journal-code"></i></div>
             <div class="feature-title">Audit Trail</div>
             <div class="feature-desc">Every change is a Git commit with full history</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="workflow" class="py-5 pipeline-section">
+    <div class="container">
+      <div class="text-center mb-5 fade-in">
+        <div class="section-tag"><i class="bi bi-gear"></i> How It Works</div>
+        <h2 class="section-title">Step-by-Step Workflow</h2>
+        <p class="section-desc mx-auto">How code reaches production in this GitOps platform.</p>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="row align-items-center mb-5 fade-in">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pipeline-dot">1</div>
+            <h3 class="h5 text-white fw-bold mb-0">Repository Structure</h3>
+          </div>
+          <p class="text-secondary mb-3">The project is organized into clear directories:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-dot" style="background: #ef4444;"></span>
+              <span class="code-dot" style="background: #f59e0b;"></span>
+              <span class="code-dot" style="background: #22c55e;"></span>
+              <span class="ms-2 text-muted small">k8s-gitops-lab/</span>
+            </div>
+            <div class="code-body">
+              <span class="comment"># Application code</span><br>
+              <span class="cmd">apps/guestbook/</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">Dockerfile</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">index.html</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">deployment.yaml</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">service.yaml</span><br>
+              &nbsp;&nbsp;<span class="flag">└──</span> <span class="string">ingress.yaml</span><br><br>
+              <span class="comment"># ArgoCD configuration</span><br>
+              <span class="cmd">applications/</span><br>
+              &nbsp;&nbsp;<span class="flag">└──</span> <span class="string">guestbook.yaml</span><br><br>
+              <span class="comment"># One-time bootstrap</span><br>
+              <span class="cmd">bootstrap/</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">project.yaml</span><br>
+              &nbsp;&nbsp;<span class="flag">├──</span> <span class="string">app-of-apps.yaml</span><br>
+              &nbsp;&nbsp;<span class="flag">└──</span> <span class="string">cluster-issuer.yaml</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-bold mb-3"><i class="bi bi-folder me-2" style="color: var(--primary);"></i>Directory Purpose</h5>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3">
+                <span class="stack-badge">apps/</span>
+                <span class="text-secondary small">Your application code and Kubernetes manifests</span>
+              </div>
+              <div class="d-flex gap-3">
+                <span class="stack-badge">applications/</span>
+                <span class="text-secondary small">ArgoCD Application CRDs (what to deploy)</span>
+              </div>
+              <div class="d-flex gap-3">
+                <span class="stack-badge">bootstrap/</span>
+                <span class="text-secondary small">One-time setup (applied manually)</span>
+              </div>
+              <div class="d-flex gap-3">
+                <span class="stack-badge">.github/</span>
+                <span class="text-secondary small">CI pipeline (builds Docker images)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="row align-items-center mb-5 fade-in">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pipeline-dot">2</div>
+            <h3 class="h5 text-white fw-bold mb-0">Bootstrap (One-Time Setup)</h3>
+          </div>
+          <p class="text-secondary mb-3">Run these 3 commands once to start the GitOps loop:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-dot" style="background: #ef4444;"></span>
+              <span class="code-dot" style="background: #f59e0b;"></span>
+              <span class="code-dot" style="background: #22c55e;"></span>
+              <span class="ms-2 text-muted small">terminal</span>
+            </div>
+            <div class="code-body">
+              <span class="comment"># 1. Create ArgoCD project (RBAC rules)</span><br>
+              <span class="cmd">kubectl</span> apply <span class="flag">-f</span> <span class="string">bootstrap/project.yaml</span><br><br>
+              <span class="comment"># 2. Create Let's Encrypt issuers (HTTPS)</span><br>
+              <span class="cmd">kubectl</span> apply <span class="flag">-f</span> <span class="string">bootstrap/cluster-issuer.yaml</span><br><br>
+              <span class="comment"># 3. Start GitOps loop (ArgoCD watches repo)</span><br>
+              <span class="cmd">kubectl</span> apply <span class="flag">-f</span> <span class="string">bootstrap/app-of-apps.yaml</span><br><br>
+              <span class="comment"># That's it! Everything else is automatic.</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-bold mb-3"><i class="bi bi-arrow-right me-2" style="color: var(--green);"></i>What Happens Next</h5>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">1.</span>
+                <span class="text-secondary small">ArgoCD reads <code>applications/</code> directory</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">2.</span>
+                <span class="text-secondary small">Finds <code>guestbook.yaml</code></span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">3.</span>
+                <span class="text-secondary small">Reads <code>apps/guestbook/</code> directory</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">4.</span>
+                <span class="text-secondary small">Runs <code>kustomize build</code></span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">5.</span>
+                <span class="text-secondary small">Deploys to cluster</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="row align-items-center mb-5 fade-in">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pipeline-dot">3</div>
+            <h3 class="h5 text-white fw-bold mb-0">Deploy Updates</h3>
+          </div>
+          <p class="text-secondary mb-3">When you want to update your app:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-dot" style="background: #ef4444;"></span>
+              <span class="code-dot" style="background: #f59e0b;"></span>
+              <span class="code-dot" style="background: #22c55e;"></span>
+              <span class="ms-2 text-muted small">terminal</span>
+            </div>
+            <div class="code-body">
+              <span class="comment"># 1. Edit your app</span><br>
+              <span class="cmd">nano</span> <span class="string">apps/guestbook/index.html</span><br><br>
+              <span class="comment"># 2. Commit and push (triggers CI)</span><br>
+              <span class="cmd">git</span> add <span class="string">apps/guestbook/</span><br>
+              <span class="cmd">git</span> commit <span class="flag">-m</span> <span class="string">"feat: update app"</span><br>
+              <span class="cmd">git</span> push<br><br>
+              <span class="comment"># 3. Wait for CI (2-3 min)</span><br>
+              <span class="comment"># 4. Update image tag</span><br>
+              <span class="cmd">nano</span> <span class="string">apps/guestbook/kustomization.yaml</span><br>
+              <span class="comment"># Change: newTag: &lt;new-sha&gt;</span><br><br>
+              <span class="comment"># 5. Commit and push (ArgoCD deploys)</span><br>
+              <span class="cmd">git</span> commit <span class="flag">-m</span> <span class="string">"deploy: update image"</span><br>
+              <span class="cmd">git</span> push
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-bold mb-3"><i class="bi bi-lightning me-2" style="color: var(--orange);"></i>What Happens</h5>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">1.</span>
+                <span class="text-secondary small">GitHub Actions detects change in <code>apps/guestbook/</code></span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">2.</span>
+                <span class="text-secondary small">Builds Docker image from <code>Dockerfile</code></span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">3.</span>
+                <span class="text-secondary small">Pushes to GHCR with commit SHA tag</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">4.</span>
+                <span class="text-secondary small">ArgoCD detects Git change in <code>kustomization.yaml</code></span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">5.</span>
+                <span class="text-secondary small">Syncs new image to cluster</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">6.</span>
+                <span class="text-secondary small">Pod restarts with new image</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="row align-items-center mb-5 fade-in">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pipeline-dot">4</div>
+            <h3 class="h5 text-white fw-bold mb-0">HTTPS & Security</h3>
+          </div>
+          <p class="text-secondary mb-3">Automatic HTTPS and security features:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-dot" style="background: #ef4444;"></span>
+              <span class="code-dot" style="background: #f59e0b;"></span>
+              <span class="code-dot" style="background: #22c55e;"></span>
+              <span class="ms-2 text-muted small">ingress.yaml</span>
+            </div>
+            <div class="code-body">
+              <span class="cmd">apiVersion:</span> <span class="string">networking.k8s.io/v1</span><br>
+              <span class="cmd">kind:</span> <span class="string">Ingress</span><br>
+              <span class="cmd">metadata:</span><br>
+              &nbsp;&nbsp;<span class="cmd">annotations:</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="flag">cert-manager.io/cluster-issuer:</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">letsencrypt-production</span><br>
+              <span class="cmd">spec:</span><br>
+              &nbsp;&nbsp;<span class="cmd">tls:</span><br>
+              &nbsp;&nbsp;<span class="flag">-</span> <span class="cmd">hosts:</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="flag">-</span> <span class="string">guestbook.k8s.cmtmm.online</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">secretName:</span> <span class="string">guestbook-ui-tls</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-bold mb-3"><i class="bi bi-shield-lock me-2" style="color: var(--warning);"></i>Security Features</h5>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Non-root container</strong> — Runs as UID 101 (nginx user)</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Read-only filesystem</strong> — Cannot write to disk</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Dropped capabilities</strong> — All Linux capabilities removed</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Resource limits</strong> — CPU & memory boundaries</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Health probes</strong> — Liveness & readiness checks</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-success fw-bold">✓</span>
+                <span class="text-secondary small"><strong>Auto-renewed TLS</strong> — Let's Encrypt via cert-manager</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="row align-items-center fade-in">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="pipeline-dot">5</div>
+            <h3 class="h5 text-white fw-bold mb-0">Self-Healing</h3>
+          </div>
+          <p class="text-secondary mb-3">ArgoCD continuously monitors the cluster:</p>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-dot" style="background: #ef4444;"></span>
+              <span class="code-dot" style="background: #f59e0b;"></span>
+              <span class="code-dot" style="background: #22c55e;"></span>
+              <span class="ms-2 text-muted small">self-healing</span>
+            </div>
+            <div class="code-body">
+              <span class="comment"># Someone makes a manual change</span><br>
+              <span class="cmd">kubectl</span> edit <span class="string">deployment guestbook-ui</span><br><br>
+              <span class="comment"># ArgoCD detects the drift</span><br>
+              <span style="color: var(--orange);">⚠ Drift detected!</span><br><br>
+              <span class="comment"># ArgoCD reverts to match Git</span><br>
+              <span style="color: var(--green);">✓ Reverted to Git state</span><br><br>
+              <span class="comment"># The cluster always matches Git.</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-bold mb-3"><i class="bi bi-arrow-repeat me-2" style="color: var(--green);"></i>Why This Matters</h5>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">1.</span>
+                <span class="text-secondary small"><strong>Consistency</strong> — Cluster always matches Git</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">2.</span>
+                <span class="text-secondary small"><strong>Security</strong> — Manual changes are reverted</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">3.</span>
+                <span class="text-secondary small"><strong>Audit trail</strong> — Every change is a Git commit</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">4.</span>
+                <span class="text-secondary small"><strong>Rollback</strong> — <code>git revert</code> undoes bad changes</span>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="text-primary fw-bold">5.</span>
+                <span class="text-secondary small"><strong>Collaboration</strong> — Team reviews via Pull Requests</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
