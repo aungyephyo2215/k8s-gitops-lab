@@ -1,11 +1,263 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Aung Kyaw GitOps Lab</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitOps Lab | Kubernetes Portfolio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --dark: #0f172a;
+      --card-bg: #1e293b;
+    }
+    body {
+      background: var(--dark);
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #0c1a3d 100%);
+      padding: 80px 0 60px;
+      border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+    }
+    .badge-stack {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .card-custom {
+      background: var(--card-bg);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 12px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card-custom:hover {
+      transform: translateY(-2px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.green { background: #22c55e; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .pipeline-step {
+      position: relative;
+      padding-left: 32px;
+    }
+    .pipeline-step::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 28px;
+      bottom: -8px;
+      width: 2px;
+      background: rgba(99, 102, 241, 0.3);
+    }
+    .pipeline-step:last-child::before {
+      display: none;
+    }
+    .pipeline-dot {
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: white;
+    }
+    footer {
+      border-top: 1px solid rgba(99, 102, 241, 0.15);
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello from my own Kubernetes GitOps App</h1>
-  <p>Deployed by Argo CD</p>
-  <p>Running on K3s + NGINX Ingress + Traefik</p>
+
+  <!-- Hero -->
+  <section class="hero text-center">
+    <div class="container">
+      <div class="mb-3">
+        <span class="badge-stack me-1">K3s</span>
+        <span class="badge-stack me-1">ArgoCD</span>
+        <span class="badge-stack me-1">GitHub Actions</span>
+        <span class="badge-stack">cert-manager</span>
+      </div>
+      <h1 class="display-5 fw-bold text-white mb-3">
+        <i class="bi bi-git me-2"></i>GitOps Lab
+      </h1>
+      <p class="lead text-secondary mx-auto" style="max-width: 600px;">
+        A production-style Kubernetes GitOps platform built for learning modern DevOps practices.
+      </p>
+      <div class="mt-4">
+        <span class="status-dot green"></span>
+        <small class="text-success">Deployed by ArgoCD</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Cards -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="h4 text-white mb-4"><i class="bi bi-layers me-2"></i>Architecture</h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card-custom p-4 h-100">
+            <div class="icon-box bg-primary bg-opacity-10 text-primary mb-3">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <h5 class="text-white fw-semibold">Container</h5>
+            <p class="text-secondary small mb-0">
+              Nginx Alpine serving static content. Built with a multi-layer security context and resource limits.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom p-4 h-100">
+            <div class="icon-box bg-success bg-opacity-10 text-success mb-3">
+              <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <h5 class="text-white fw-semibold">GitOps Pipeline</h5>
+            <p class="text-secondary small mb-0">
+              Push code to Git. GitHub Actions builds the image. ArgoCD syncs to the cluster. Zero manual steps.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom p-4 h-100">
+            <div class="icon-box bg-warning bg-opacity-10 text-warning mb-3">
+              <i class="bi bi-shield-lock"></i>
+            </div>
+            <h5 class="text-white fw-semibold">Security</h5>
+            <p class="text-secondary small mb-0">
+              Non-root container, read-only filesystem, dropped capabilities, TLS via Let's Encrypt.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deployment Pipeline -->
+  <section class="py-5" style="background: rgba(99,102,241,0.03);">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <h2 class="h4 text-white mb-4"><i class="bi bi-diagram-3 me-2"></i>Deployment Pipeline</h2>
+          <div class="pipeline-step mb-4">
+            <div class="pipeline-dot">1</div>
+            <h6 class="text-white fw-semibold">Code Push</h6>
+            <p class="text-secondary small mb-0">Developer pushes to GitHub main branch</p>
+          </div>
+          <div class="pipeline-step mb-4">
+            <div class="pipeline-dot">2</div>
+            <h6 class="text-white fw-semibold">CI Build</h6>
+            <p class="text-secondary small mb-0">GitHub Actions builds Docker image, pushes to GHCR</p>
+          </div>
+          <div class="pipeline-step mb-4">
+            <div class="pipeline-dot">3</div>
+            <h6 class="text-white fw-semibold">Image Update</h6>
+            <p class="text-secondary small mb-0">ArgoCD Image Updater detects new tag in registry</p>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-dot">4</div>
+            <h6 class="text-white fw-semibold">GitOps Sync</h6>
+            <p class="text-secondary small mb-0">ArgoCD syncs new manifests to K3s cluster</p>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-custom p-4">
+            <h5 class="text-white fw-semibold mb-3">Tech Stack</h5>
+            <table class="table table-borderless text-secondary small mb-0">
+              <tbody>
+                <tr><td class="text-white-50">Orchestration</td><td class="text-end"><span class="badge-stack">K3s</span></td></tr>
+                <tr><td class="text-white-50">GitOps</td><td class="text-end"><span class="badge-stack">ArgoCD</span></td></tr>
+                <tr><td class="text-white-50">CI/CD</td><td class="text-end"><span class="badge-stack">GitHub Actions</span></td></tr>
+                <tr><td class="text-white-50">Registry</td><td class="text-end"><span class="badge-stack">GHCR</span></td></tr>
+                <tr><td class="text-white-50">Ingress</td><td class="text-end"><span class="badge-stack">NGINX</span></td></tr>
+                <tr><td class="text-white-50">TLS</td><td class="text-end"><span class="badge-stack">cert-manager</span></td></tr>
+                <tr><td class="text-white-50">Manifests</td><td class="text-end"><span class="badge-stack">Kustomize</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="h4 text-white mb-4"><i class="bi bi-check-circle me-2"></i>Production Features</h2>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom p-3 text-center">
+            <i class="bi bi-heart-pulse text-danger fs-3"></i>
+            <h6 class="text-white mt-2 mb-1">Health Probes</h6>
+            <small class="text-secondary">Liveness & readiness checks</small>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom p-3 text-center">
+            <i class="bi bi-speedometer text-info fs-3"></i>
+            <h6 class="text-white mt-2 mb-1">Resource Limits</h6>
+            <small class="text-secondary">CPU & memory boundaries</small>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom p-3 text-center">
+            <i class="bi bi-lock text-warning fs-3"></i>
+            <h6 class="text-white mt-2 mb-1">HTTPS</h6>
+            <small class="text-secondary">Auto-renewed TLS certs</small>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom p-3 text-center">
+            <i class="bi bi-git text-success fs-3"></i>
+            <h6 class="text-white mt-2 mb-1">Self-Healing</h6>
+            <small class="text-secondary">Auto-revert manual changes</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-4">
+    <div class="container text-center">
+      <small class="text-secondary">
+        <i class="bi bi-git me-1"></i>
+        Built with Kubernetes, ArgoCD & GitOps best practices
+      </small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
