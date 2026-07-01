@@ -4,7 +4,11 @@ metadata:
   name: guestbook
   namespace: argocd
 spec:
-  # How to write back updates to Git
+  # Global settings
+  commonUpdateSettings:
+    updateStrategy: latest
+
+  # Write back to Git
   writeBackConfig:
     method: git
     gitConfig:
@@ -14,8 +18,6 @@ spec:
   # Select the guestbook application
   applicationRefs:
     - namePattern: "guestbook"
-      commonUpdateSettings:
-        updateStrategy: latest
       images:
         - alias: guestbook
           imageName: ghcr.io/aungyephyo2215/guestbook
