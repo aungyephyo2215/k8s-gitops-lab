@@ -20,4 +20,4 @@ spec:
     - namePattern: "guestbook"
       images:
         - alias: guestbook
-          imageName: ghcr.io/aungyephyo2215/guestbook:latest
+          imageName: ghcr.io/aungyephyo2215/guestbook
