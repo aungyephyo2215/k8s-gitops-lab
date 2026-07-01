@@ -14,6 +14,10 @@ spec:
   destinations:
     - server: https://kubernetes.default.svc
       namespace: app-*
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
 
   # Allow Applications to be managed by this project
   namespaceResourceWhitelist:
@@ -21,9 +25,21 @@ spec:
       kind: Namespace
     - group: apps
       kind: Deployment
+    - group: apps
+      kind: StatefulSet
     - group: ""
       kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
     - group: networking.k8s.io
       kind: Ingress
     - group: argoproj.io
       kind: Application
+    - group: monitoring.coreos.com
+      kind: ServiceMonitor
+    - group: monitoring.coreos.com
+      kind: Prometheus
+    - group: monitoring.coreos.com
+      kind: Alertmanager
