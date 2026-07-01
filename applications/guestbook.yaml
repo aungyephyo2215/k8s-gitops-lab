@@ -5,13 +5,6 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: gitops-lab
-  annotations:
-    # Watch GHCR for new image tags
-    argocd-image-updater.argoproj.io/image-list: guestbook=ghcr.io/aungyephyo2215/guestbook
-    # Always use the latest tag pushed by CI
-    argocd-image-updater.argoproj.io/guestbook.update-strategy: latest
-    # Write the updated tag back to Git (true GitOps)
-    argocd-image-updater.argoproj.io/guestbook.write-back-method: git
 spec:
   project: gitops-lab
 
