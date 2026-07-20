@@ -1,0 +1,220 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: gitops-lab
+    app.kubernetes.io/component: monitoring
+spec:
+  project: gitops-lab
+
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 87.17.0
+    helm:
+      releaseName: monitoring
+      valuesObject:
+        # Prometheus
+        prometheus:
+          prometheusSpec:
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 10Gi
+            retention: 15d
+            retentionSize: "8GB"
+            serviceMonitorSelector: {}
+            serviceMonitorNamespaceSelector: {}
+            ruleSelector: {}
+            ruleNamespaceSelector: {}
+            podMonitorSelector: {}
+            podMonitorNamespaceSelector: {}
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              fsGroup: 1000
+          ingress:
+            enabled: false
+          prometheusRule:
+            enabled: false
+
+        # Alertmanager
+        alertmanager:
+          alertmanagerSpec:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 2Gi
+            replicas: 1
+            retention: 120h
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              fsGroup: 1000
+          ingress:
+            enabled: false
+          config:
+            global:
+              resolve_timeout: 5m
+            route:
+              group_by: ['alertname', 'namespace']
+              group_wait: 10s
+              group_interval: 10s
+              repeat_interval: 12h
+              receiver: 'default'
+            receivers:
+              - name: 'default'
+              - name: 'null'
+
+        # Grafana
+        grafana:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          persistence:
+            enabled: true
+            size: 5Gi
+          adminUser: admin
+          adminPassword: "monitoring-admin"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 472
+            fsGroup: 472
+          ingress:
+            enabled: false
+          sidecar:
+            dashboards:
+              enabled: false
+            datasources:
+              enabled: false
+          grafana.ini:
+            server:
+              root_url: https://grafana.k8s.cmtmm.online
+            auth.anonymous:
+              enabled: false
+            users:
+              allow_sign_up: false
+          additionalDataSources:
+            - name: Loki
+              type: loki
+              url: http://loki.monitoring.svc.cluster.local:3100
+              access: proxy
+              isDefault: false
+
+        # Node Exporter
+        nodeExporter:
+          enabled: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          hostNetwork: true
+          hostPID: true
+          tolerations:
+            - operator: Exists
+
+        # Kube State Metrics
+        kubeStateMetrics:
+          enabled: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+        # Prometheus Operator
+        prometheusOperator:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            fsGroup: 65534
+          tolerations:
+            - operator: Exists
+
+        # Default Rules
+        defaultRules:
+          create: true
+          rules:
+            alertmanager: false
+            etcd: false
+            configReloaders: false
+            general: false
+            k8s: false
+            kubeApiserverAvailability: false
+            kubeApiserverBurnrate: false
+            kubeApiserverHistogram: false
+            kubeApiserverSlos: false
+            kubeControllerManager: false
+            kubelet: false
+            kubeProxy: false
+            kubePrometheusGeneral: false
+            kubePrometheusNodeRecording: false
+            kubernetesApps: false
+            kubernetesResources: false
+            kubernetesStorage: false
+            kubernetesSystem: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            kubeStateMetrics: false
+            network: false
+            node: false
+            nodeExporterAlerting: false
+            nodeExporterRecording: false
+            prometheus: false
+            prometheusOperator: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
