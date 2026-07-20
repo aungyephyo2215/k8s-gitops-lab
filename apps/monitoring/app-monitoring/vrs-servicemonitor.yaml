@@ -1,0 +1,77 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: vrs-http-probe
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  jobName: blackbox-vrs-http
+  interval: 30s
+  scrapeTimeout: 10s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - https://vrs-staging.k8s.cmtmm.online
+      labels:
+        app: vrs
+        environment: staging
+        probe_type: http
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: vrs-tls-probe
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  jobName: blackbox-vrs-tls
+  interval: 300s
+  scrapeTimeout: 10s
+  module: http_tls
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - https://vrs-staging.k8s.cmtmm.online
+      labels:
+        app: vrs
+        environment: staging
+        probe_type: tls
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: ingress-nginx-health
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: blackbox-exporter
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  jobName: blackbox-nginx-health
+  interval: 30s
+  scrapeTimeout: 10s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+    path: /probe
+  targets:
+    staticConfig:
+      static:
+        - https://grafana.k8s.cmtmm.online
+        - https://prometheus.k8s.cmtmm.online
+        - https://alertmanager.k8s.cmtmm.online
+      labels:
+        probe_type: nginx-health

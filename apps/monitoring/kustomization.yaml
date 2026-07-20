@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: monitoring-stack
+  labels:
+    app.kubernetes.io/part-of: monitoring-stack
+
+resources:
+  # Base resources
+  - base/namespace.yaml
+  - base/resourcequota.yaml
+  - base/limitrange.yaml
+
+  # Ingress
+  - ingress/grafana.yaml
+  - ingress/prometheus.yaml
+  - ingress/alertmanager.yaml
+
+  # Alerts
+  - alerts/infrastructure-alerts.yaml
+  - alerts/kubernetes-alerts.yaml
+  - alerts/application-alerts.yaml
+
+  # Logging
+  - logging/loki-config.yaml
+  - logging/loki.yaml
+  - logging/alloy-config.yaml
+  - logging/alloy.yaml
+
+  # App monitoring
+  - app-monitoring/blackbox-config.yaml
+  - app-monitoring/blackbox-exporter.yaml
+  - app-monitoring/vrs-servicemonitor.yaml

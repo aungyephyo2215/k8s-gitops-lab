@@ -1,0 +1,120 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: infrastructure-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  groups:
+    - name: infrastructure.rules
+      rules:
+        # Node High CPU Usage
+        - alert: NodeHighCpuUsage
+          expr: |
+            100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node CPU usage above 85%"
+            description: "Node {{ $labels.instance }} CPU usage is {{ $value | printf \"%.1f\" }}% for more than 10 minutes."
+
+        # Node Critical CPU Usage
+        - alert: NodeCriticalCpuUsage
+          expr: |
+            100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node CPU usage above 95%"
+            description: "Node {{ $labels.instance }} CPU usage is {{ $value | printf \"%.1f\" }}% for more than 5 minutes."
+
+        # Node High Memory Usage
+        - alert: NodeHighMemoryUsage
+          expr: |
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node memory usage above 85%"
+            description: "Node {{ $labels.instance }} memory usage is {{ $value | printf \"%.1f\" }}% for more than 10 minutes."
+
+        # Node Critical Memory Usage
+        - alert: NodeCriticalMemoryUsage
+          expr: |
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node memory usage above 95%"
+            description: "Node {{ $labels.instance }} memory usage is {{ $value | printf \"%.1f\" }}% for more than 5 minutes."
+
+        # Node Disk Usage
+        - alert: NodeHighDiskUsage
+          expr: |
+            (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node disk usage above 80%"
+            description: "Node {{ $labels.instance }} disk {{ $labels.mountpoint }} usage is {{ $value | printf \"%.1f\" }}%."
+
+        # Node Critical Disk Usage
+        - alert: NodeCriticalDiskUsage
+          expr: |
+            (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 90
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node disk usage above 90%"
+            description: "Node {{ $labels.instance }} disk {{ $labels.mountpoint }} usage is {{ $value | printf \"%.1f\" }}%."
+
+        # Node Down
+        - alert: NodeDown
+          expr: up{job="node-exporter"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node is down"
+            description: "Node {{ $labels.instance }} has been unreachable for more than 5 minutes."
+
+        # Node High Network Errors
+        - alert: NodeHighNetworkErrors
+          expr: |
+            rate(node_network_receive_errs_total[5m]) > 10 or rate(node_network_transmit_errs_total[5m]) > 10
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High network error rate"
+            description: "Node {{ $labels.instance }} interface {{ $labels.device }} has high error rate."
+
+        # Node High Load Average
+        - alert: NodeHighLoadAverage
+          expr: |
+            node_load15 / count by(instance) (node_cpu_seconds_total{mode="idle"}) > 2
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High load average"
+            description: "Node {{ $labels.instance }} 15-minute load average is {{ $value | printf \"%.2f\" }}."
+
+        # Node Clock Skew
+        - alert: NodeClockSkew
+          expr: |
+            abs(ntp_offset_seconds) > 0.1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node clock skew detected"
+            description: "Node {{ $labels.instance }} has clock offset of {{ $value | printf \"%.3f\" }}s."

@@ -1,0 +1,247 @@
+# kube-prometheus-stack Helm values for K3s single-node cluster
+# Domain: *.k8s.cmtmm.online
+# Ingress-nginx NodePort: 80:32280, 443:32443
+
+# --- Global ---
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+# --- Prometheus ---
+prometheus:
+  prometheusSpec:
+    # Retention
+    retention: 15d
+    retentionSize: "8GB"
+
+    # Storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+    # Resources
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+    # Scrape all ServiceMonitors
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    # Node selector for single-node
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+
+    # Additional scrape configs
+    additionalScrapeConfigs:
+      - job_name: k3s-etcd
+        scheme: https
+        tls_config:
+          ca_file: /var/lib/rancher/k3s/server/tls/etcd/ca.crt
+          cert_file: /var/lib/rancher/k3s/server/tls/etcd/client.crt
+          key_file: /var/lib/rancher/k3s/server/tls/etcd/client.key
+        metrics_path: /metrics
+        static_configs:
+          - targets: ["127.0.0.1:2381"]
+            labels:
+              job: k3s-etcd
+
+  # Ingress for Prometheus UI
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - prometheus.k8s.cmtmm.online
+    paths:
+      - path: /
+        pathType: Prefix
+    tls:
+      - hosts:
+          - prometheus.k8s.cmtmm.online
+        secretName: prometheus-tls
+
+# --- Alertmanager ---
+alertmanager:
+  alertmanagerSpec:
+    # Storage
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+    # Resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # Node selector
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+
+  # Ingress for Alertmanager UI
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - alertmanager.k8s.cmtmm.online
+    paths:
+      - path: /
+        pathType: Prefix
+    tls:
+      - hosts:
+          - alertmanager.k8s.cmtmm.online
+        secretName: alertmanager-tls
+
+# --- Grafana ---
+grafana:
+  enabled: true
+
+  # Admin credentials
+  adminUser: admin
+  adminPassword: "GrafanaAdmin123!"
+
+  # Ingress
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - grafana.k8s.cmtmm.online
+    path: /
+    pathType: Prefix
+    tls:
+      - hosts:
+          - grafana.k8s.cmtmm.online
+        secretName: grafana-tls
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Persistence
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  # Datasources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
+          access: proxy
+          isDefault: true
+        - name: Loki
+          type: loki
+          url: http://loki.monitoring.svc:3100
+          access: proxy
+
+  # Dashboard providers
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: K3s
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+  # Sidecar for dashboards
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+      label: grafana_dashboard
+      folderAnnotation: grafana_folder
+    datasources:
+      enabled: true
+      searchNamespace: ALL
+
+  # Node selector
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: "true"
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      effect: NoSchedule
+
+# --- Node Exporter ---
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# --- Kube State Metrics ---
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# --- CoreDNS ---
+coreDns:
+  enabled: true
+
+# --- Kube Scheduler ---
+kubeScheduler:
+  enabled: true
+
+# --- Kube Controller Manager ---
+kubeControllerManager:
+  enabled: true
+
+# --- Kube Proxy ---
+kubeProxy:
+  enabled: true

@@ -1,0 +1,165 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubernetes-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  groups:
+    - name: kubernetes.rules
+      rules:
+        # Pod CrashLooping
+        - alert: PodCrashLooping
+          expr: |
+            increase(kube_pod_container_status_restarts_total[15m]) >= 3
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is crash looping"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} has restarted {{ $value }} times in 15 minutes."
+
+        # Pod Not Ready
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_ready{condition="true"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is not ready"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been not ready for more than 10 minutes."
+
+        # Pod Pending Too Long
+        - alert: PodPendingTooLong
+          expr: |
+            kube_pod_status_phase{phase="Pending"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod pending too long"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been pending for more than 15 minutes."
+
+        # Deployment Replicas Mismatch
+        - alert: DeploymentReplicasMismatch
+          expr: |
+            kube_deployment_spec_replicas != kube_deployment_status_ready_replicas
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Deployment replicas mismatch"
+            description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has {{ $value }} unavailable replicas."
+
+        # Deployment Not Available
+        - alert: DeploymentNotAvailable
+          expr: |
+            kube_deployment_status_available_replicas == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Deployment has no available replicas"
+            description: "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has no available replicas for more than 5 minutes."
+
+        # StatefulSet Replicas Mismatch
+        - alert: StatefulSetReplicasMismatch
+          expr: |
+            kube_statefulset_replicas != kube_statefulset_status_ready_replicas
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "StatefulSet replicas mismatch"
+            description: "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has {{ $value }} unavailable replicas."
+
+        # DaemonSet Misscheduled
+        - alert: DaemonSetMisscheduled
+          expr: |
+            kube_daemonset_status_number_misscheduled > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "DaemonSet has misscheduled pods"
+            description: "DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} has {{ $value }} misscheduled pods."
+
+        # PVC Pending
+        - alert: PersistentVolumeClaimPending
+          expr: |
+            kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC is pending"
+            description: "PersistentVolumeClaim {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} has been pending for more than 15 minutes."
+
+        # Container CPU Throttling
+        - alert: ContainerCpuThrottling
+          expr: |
+            rate(container_cpu_cfs_throttled_periods_total[5m]) / rate(container_cpu_cfs_periods_total[5m]) > 0.5
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Container CPU throttling"
+            description: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} has {{ $value | printf \"%.1f\" }}% CPU throttling."
+
+        # Container Memory Near Limit
+        - alert: ContainerMemoryNearLimit
+          expr: |
+            container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Container memory usage near limit"
+            description: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} memory usage is {{ $value | printf \"%.1f\" }}% of limit."
+
+        # Pod OOM Killed
+        - alert: PodOOMKilled
+          expr: |
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod OOM killed"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} was OOM killed."
+
+        # Kubelet Not Ready
+        - alert: KubeletNotReady
+          expr: |
+            kube_node_status_condition{condition="Ready",status="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Kubelet not ready"
+            description: "Node {{ $labels.node }} kubelet has been not ready for more than 5 minutes."
+
+        # CoreDNS Down
+        - alert: CoreDNSDown
+          expr: |
+            up{job="coredns"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "CoreDNS is down"
+            description: "CoreDNS has been down for more than 5 minutes."
+
+        # API Server High Latency
+        - alert: APIServerHighLatency
+          expr: |
+            histogram_quantile(0.99, rate(apiserver_request_duration_seconds_bucket{verb!~"WATCH|CONNECT"}[5m])) > 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "API server high latency"
+            description: "API server P99 latency is {{ $value | printf \"%.2f\" }}s for more than 15 minutes."

@@ -1,0 +1,111 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: application-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/part-of: monitoring-stack
+    release: monitoring
+spec:
+  groups:
+    - name: application.rules
+      rules:
+        # Application High Error Rate (5xx)
+        - alert: ApplicationHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{code=~"5.."}[5m])) by (job, namespace, service) /
+            sum(rate(http_requests_total[5m])) by (job, namespace, service) > 0.05
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Application high error rate"
+            description: "Application {{ $labels.namespace }}/{{ $labels.service }} has {{ $value | printf \"%.1f\" }}% error rate (5xx) for more than 10 minutes."
+
+        # Application High Latency (P95)
+        - alert: ApplicationHighLatencyP95
+          expr: |
+            histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, namespace, service)) > 2
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Application high P95 latency"
+            description: "Application {{ $labels.namespace }}/{{ $labels.service }} P95 latency is {{ $value | printf \"%.2f\" }}s for more than 15 minutes."
+
+        # Application High Latency (P99)
+        - alert: ApplicationHighLatencyP99
+          expr: |
+            histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, namespace, service)) > 5
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Application high P99 latency"
+            description: "Application {{ $labels.namespace }}/{{ $labels.service }} P99 latency is {{ $value | printf \"%.2f\" }}s for more than 15 minutes."
+
+        # Application Low Throughput
+        - alert: ApplicationLowThroughput
+          expr: |
+            sum(rate(http_requests_total[5m])) by (job, namespace, service) < 0.1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Application low throughput"
+            description: "Application {{ $labels.namespace }}/{{ $labels.service }} has very low request rate for more than 30 minutes."
+
+        # VRS Application Down
+        - alert: VRSApplicationDown
+          expr: |
+            probe_success{job="blackbox-vrs-http"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VRS application is down"
+            description: "VRS application at vrs-staging.k8s.cmtmm.online has been unreachable for more than 5 minutes."
+
+        # VRS High Latency
+        - alert: VRSHighLatency
+          expr: |
+            probe_duration_seconds{job="blackbox-vrs-http"} > 5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VRS application high latency"
+            description: "VRS application probe latency is {{ $value | printf \"%.2f\" }}s for more than 10 minutes."
+
+        # VRS TLS Certificate Expiring
+        - alert: VRSTLSCertificateExpiringSoon
+          expr: |
+            probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "VRS TLS certificate expiring soon"
+            description: "VRS TLS certificate expires in {{ $value | humanizeDuration }}."
+
+        # Job Failed
+        - alert: KubernetesJobFailed
+          expr: |
+            kube_job_status_failed{namespace!~"kube-system|monitoring"} > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kubernetes job failed"
+            description: "Job {{ $labels.namespace }}/{{ $labels.job_name }} has failed."
+
+        # Container Restarts (generic)
+        - alert: ContainerRestartsHigh
+          expr: |
+            increase(kube_pod_container_status_restarts_total[1h]) > 5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Container restarting frequently"
+            description: "Container {{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} has restarted {{ $value }} times in the last hour."
